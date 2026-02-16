@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +12,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if (!apiKey) {
       // Return mock data if no API key configured
       return NextResponse.json({
         commonName: 'Demo Plant (OpenAI not configured)',
@@ -31,16 +28,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Use OpenAI Vision API to identify the plant
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `You are a botanical expert. Analyze this plant image and provide identification in JSON format with these fields:
+    // Use OpenAI Vision API directly via fetch
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `You are a botanical expert. Analyze this plant image and provide identification in JSON format with these fields:
               
 {
   "commonName": "common name of the plant",
@@ -53,21 +56,29 @@ export async function POST(request: NextRequest) {
   "toxicity": "toxicity information"
 }
 
-If you cannot identify the plant with confidence, say so honestly and provide your best guess with lower confidence.`,
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: image,
+If you cannot identify the plant with confidence, say so honestly and provide your best guess with lower confidence. Return ONLY the JSON, no other text.`,
               },
-            },
-          ],
-        },
-      ],
-      max_tokens: 500,
+              {
+                type: 'image_url',
+                image_url: {
+                  url: image,
+                },
+              },
+            ],
+          },
+        ],
+        max_tokens: 500,
+      }),
     });
 
-    const content = response.choices[0]?.message?.content;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'OpenAI API request failed');
+    }
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
+    
     if (!content) {
       throw new Error('No response from OpenAI');
     }
