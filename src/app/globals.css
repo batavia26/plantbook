@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 150 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 10% 10%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 40% 70%;
+    --secondary-foreground: 30 40% 20%;
+    --muted: 140 10% 96%;
+    --muted-foreground: 140 5% 45%;
+    --accent: 142 50% 93%;
+    --accent-foreground: 142 50% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 140 10% 90%;
+    --ring: 142 76% 36%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .gradient-green {
+    @apply bg-gradient-to-br from-plant-600 to-plant-800;
+  }
+  .gradient-earth {
+    @apply bg-gradient-to-br from-earth-100 to-earth-200;
+  }
+  .card-shadow {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+  }
+}
+
+/* Camera viewfinder styling */
+.camera-viewfinder {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.camera-viewfinder video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Confidence bar animation */
+@keyframes fill-bar {
+  from { width: 0%; }
+  to { width: var(--confidence); }
+}
+
+.confidence-bar {
+  animation: fill-bar 1s ease-out forwards;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}

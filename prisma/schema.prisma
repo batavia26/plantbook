@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  name           String?
+  avatarUrl      String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  userPlants     UserPlant[]
+  identifications Identification[]
+
+  @@map("users")
+}
+
+model Plant {
+  id               String           @id @default(cuid())
+  commonName       String           @map("common_name")
+  scientificName   String           @map("scientific_name")
+  family           String
+  description      String           @db.Text
+  careInstructions Json             @map("care_instructions")
+  nativeRegions    Json             @map("native_regions")
+  toxicity         String?
+  imageUrl         String?          @map("image_url")
+  plantType        String?          @map("plant_type")
+  careDifficulty   String?          @map("care_difficulty")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  userPlants       UserPlant[]
+  identifications  Identification[]
+
+  @@map("plants")
+}
+
+model UserPlant {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  plantId       String   @map("plant_id")
+  notes         String?  @db.Text
+  locationFound Json?    @map("location_found")
+  photoUrl      String?  @map("photo_url")
+  identifiedAt  DateTime @default(now()) @map("identified_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plant         Plant    @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@map("user_plants")
+}
+
+model Identification {
+  id            String   @id @default(cuid())
+  userId        String?  @map("user_id")
+  imageUrl      String   @map("image_url")
+  resultPlantId String?  @map("result_plant_id")
+  confidence    Float?
+  location      Json?
+  resultData    Json?    @map("result_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  resultPlant   Plant?   @relation(fields: [resultPlantId], references: [id], onDelete: SetNull)
+
+  @@map("identifications")
+}
