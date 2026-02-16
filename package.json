@@ -1,6 +1,6 @@
 {
   "name": "plantbook",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Plant identification and field guide app with GPS-based discovery",
   "scripts": {
     "dev": "next dev",
