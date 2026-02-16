@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function PlantsPage() {
+function PlantsContent() {
   const searchParams = useSearchParams();
   const location = searchParams.get('location');
   const [plants, setPlants] = useState<any[]>([]);
@@ -28,62 +28,110 @@ export default function PlantsPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <a href="/" className="text-green-700 hover:text-green-900 font-medium">
-            ← Back to Home
-          </a>
-        </div>
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      padding: '3rem 1rem',
+    },
+    backLink: {
+      color: '#047857',
+      fontWeight: '500',
+      marginBottom: '2rem',
+      display: 'inline-block',
+    },
+    title: {
+      fontSize: '2.5rem',
+      fontWeight: 'bold',
+      marginBottom: '0.5rem',
+    },
+    subtitle: {
+      fontSize: '1.25rem',
+      color: '#6b7280',
+      marginBottom: '2rem',
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+      gap: '1.5rem',
+    },
+    card: {
+      background: 'white',
+      borderRadius: '1rem',
+      overflow: 'hidden',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      textDecoration: 'none',
+      color: 'inherit',
+      display: 'block',
+    },
+    imagePlaceholder: {
+      width: '100%',
+      height: '200px',
+      background: '#d1fae5',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '4rem',
+    },
+    cardContent: {
+      padding: '1.5rem',
+    },
+    plantName: {
+      fontSize: '1.25rem',
+      fontWeight: 'bold',
+      marginBottom: '0.25rem',
+    },
+    scientificName: {
+      color: '#6b7280',
+      fontStyle: 'italic',
+      fontSize: '0.875rem',
+      marginBottom: '0.75rem',
+    },
+    regions: {
+      color: '#6b7280',
+      fontSize: '0.875rem',
+    },
+  };
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            📚 Plant Field Guide
-          </h1>
+  return (
+    <div style={styles.container}>
+      <div className="container">
+        <a href="/" style={styles.backLink}>
+          ← Back to Home
+        </a>
+
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={styles.title}>📚 Plant Field Guide</h1>
           {location && (
-            <p className="text-xl text-gray-600">
+            <p style={styles.subtitle}>
               Plants found in: <strong>{location}</strong>
             </p>
           )}
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading plants...</p>
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <p style={{ color: '#6b7280' }}>Loading plants...</p>
           </div>
         ) : plants.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No plants found</p>
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <p style={{ color: '#6b7280' }}>No plants found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={styles.grid}>
             {plants.map((plant) => (
               <a
                 key={plant.id}
                 href={`/plants/${plant.id}`}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
+                style={styles.card}
               >
-                {plant.imageUrl ? (
-                  <img
-                    src={plant.imageUrl}
-                    alt={plant.commonName}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-green-100 flex items-center justify-center">
-                    <span className="text-6xl">🌿</span>
-                  </div>
-                )}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    {plant.commonName}
-                  </h3>
-                  <p className="text-gray-600 italic text-sm mb-3">
-                    {plant.scientificName}
-                  </p>
+                <div style={styles.imagePlaceholder}>
+                  <span>🌿</span>
+                </div>
+                <div style={styles.cardContent}>
+                  <h3 style={styles.plantName}>{plant.commonName}</h3>
+                  <p style={styles.scientificName}>{plant.scientificName}</p>
                   {plant.nativeRegions && (
-                    <p className="text-gray-500 text-sm">
+                    <p style={styles.regions}>
                       📍 {plant.nativeRegions.join(', ')}
                     </p>
                   )}
@@ -94,5 +142,13 @@ export default function PlantsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PlantsPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '3rem', textAlign: 'center' }}>Loading...</div>}>
+      <PlantsContent />
+    </Suspense>
   );
 }
