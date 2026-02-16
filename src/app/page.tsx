@@ -7,102 +7,156 @@ export default function HomePage() {
   const router = useRouter();
   const [location, setLocation] = useState<string>('');
 
-  const handleIdentify = () => {
-    router.push('/identify');
-  };
-
-  const handleBrowse = () => {
-    router.push('/plants');
-  };
-
-  const handleLocationSearch = () => {
-    if (location.trim()) {
-      router.push(`/plants?location=${encodeURIComponent(location)}`);
-    }
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      padding: '4rem 1rem',
+    },
+    title: {
+      textAlign: 'center' as const,
+      fontSize: '3rem',
+      fontWeight: 'bold',
+      color: '#065f46',
+      marginBottom: '1rem',
+    },
+    subtitle: {
+      textAlign: 'center' as const,
+      fontSize: '1.25rem',
+      color: '#047857',
+      marginBottom: '3rem',
+    },
+    cardsContainer: {
+      maxWidth: '800px',
+      margin: '0 auto',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '1.5rem',
+    },
+    card: {
+      background: 'white',
+      borderRadius: '1rem',
+      padding: '2rem',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    },
+    cardHeader: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1rem',
+      marginBottom: '1rem',
+    },
+    icon: {
+      fontSize: '2.5rem',
+    },
+    cardTitle: {
+      fontSize: '1.5rem',
+      fontWeight: '600',
+      marginBottom: '0.25rem',
+    },
+    cardDesc: {
+      color: '#6b7280',
+    },
+    button: {
+      width: '100%',
+      background: '#059669',
+      color: 'white',
+      padding: '0.75rem 1.5rem',
+      borderRadius: '0.5rem',
+      border: 'none',
+      fontSize: '1rem',
+      fontWeight: '500',
+      cursor: 'pointer',
+    },
+    input: {
+      flex: 1,
+      border: '1px solid #d1d5db',
+      borderRadius: '0.5rem',
+      padding: '0.75rem 1rem',
+      fontSize: '1rem',
+    },
+    inputGroup: {
+      display: 'flex',
+      gap: '0.5rem',
+    },
+    link: {
+      textAlign: 'center' as const,
+      marginTop: '2rem',
+      color: '#047857',
+      fontWeight: '500',
+    },
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-green-900 mb-4">
-            🌱 PlantBook
-          </h1>
-          <p className="text-xl text-green-700">
-            Identify plants with AI • Discover species by location
-          </p>
-        </div>
+    <div style={styles.container}>
+      <div className="container">
+        <h1 style={styles.title}>🌱 PlantBook</h1>
+        <p style={styles.subtitle}>
+          Identify plants with AI • Discover species by location
+        </p>
 
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Identify Plant */}
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-4xl">📸</span>
+        <div style={styles.cardsContainer}>
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <span style={styles.icon}>📸</span>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Identify a Plant</h2>
-                <p className="text-gray-600">Take a photo or upload an image</p>
+                <h2 style={styles.cardTitle}>Identify a Plant</h2>
+                <p style={styles.cardDesc}>Take a photo or upload an image</p>
               </div>
             </div>
-            <button
-              onClick={handleIdentify}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition"
-            >
+            <button style={styles.button} onClick={() => router.push('/identify')}>
               Start Identification
             </button>
           </div>
 
-          {/* Browse by Location */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-4xl">🗺️</span>
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <span style={styles.icon}>🗺️</span>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Discover by Location</h2>
-                <p className="text-gray-600">Find plants native to your area</p>
+                <h2 style={styles.cardTitle}>Discover by Location</h2>
+                <p style={styles.cardDesc}>Find plants native to your area</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div style={styles.inputGroup}>
               <input
+                style={styles.input}
                 type="text"
                 placeholder="Enter location (e.g., California, Europe)"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch()}
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && location.trim()) {
+                    router.push(`/plants?location=${encodeURIComponent(location)}`);
+                  }
+                }}
               />
               <button
-                onClick={handleLocationSearch}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 rounded-lg transition"
+                style={{...styles.button, width: 'auto'}}
+                onClick={() => {
+                  if (location.trim()) {
+                    router.push(`/plants?location=${encodeURIComponent(location)}`);
+                  }
+                }}
               >
                 Search
               </button>
             </div>
           </div>
 
-          {/* Browse All */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-4xl">📚</span>
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <span style={styles.icon}>📚</span>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Browse Field Guide</h2>
-                <p className="text-gray-600">Explore our plant database</p>
+                <h2 style={styles.cardTitle}>Browse Field Guide</h2>
+                <p style={styles.cardDesc}>Explore our plant database</p>
               </div>
             </div>
-            <button
-              onClick={handleBrowse}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-lg transition"
-            >
+            <button style={styles.button} onClick={() => router.push('/plants')}>
               Browse Plants
             </button>
           </div>
         </div>
 
-        <div className="text-center mt-12">
-          <a
-            href="/my-garden"
-            className="text-green-700 hover:text-green-900 font-medium underline"
-          >
-            View My Garden →
-          </a>
+        <div style={styles.link}>
+          <a href="/my-garden">View My Garden →</a>
         </div>
       </div>
     </div>
