@@ -6,6 +6,7 @@ export default function IdentifyPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [identifying, setIdentifying] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -13,6 +14,8 @@ export default function IdentifyPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(reader.result as string);
+        setResult(null);
+        setError(null);
       };
       reader.readAsDataURL(file);
     }
@@ -23,6 +26,7 @@ export default function IdentifyPage() {
 
     setIdentifying(true);
     setResult(null);
+    setError(null);
 
     try {
       const response = await fetch('/api/identify', {
@@ -32,111 +36,247 @@ export default function IdentifyPage() {
       });
 
       const data = await response.json();
-      setResult(data);
-    } catch (error) {
-      console.error('Identification failed:', error);
-      setResult({ error: 'Failed to identify plant' });
+      
+      if (data.error) {
+        setError(data.error + (data.details ? `: ${data.details}` : ''));
+      } else {
+        setResult(data);
+      }
+    } catch (err) {
+      console.error('Identification failed:', err);
+      setError('Failed to connect to identification service');
     } finally {
       setIdentifying(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="mb-8">
-          <a href="/" className="text-green-700 hover:text-green-900 font-medium">
-            ← Back to Home
-          </a>
-        </div>
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      padding: '3rem 1rem',
+    },
+    maxWidth: {
+      maxWidth: '900px',
+      margin: '0 auto',
+    },
+    backLink: {
+      color: '#047857',
+      fontWeight: '500',
+      marginBottom: '2rem',
+      display: 'inline-block',
+    },
+    card: {
+      background: 'white',
+      borderRadius: '1rem',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      padding: '2rem',
+    },
+    title: {
+      fontSize: '2rem',
+      fontWeight: 'bold',
+      color: '#1f2937',
+      marginBottom: '1.5rem',
+    },
+    uploadBox: {
+      border: '2px dashed #d1d5db',
+      borderRadius: '0.5rem',
+      padding: '3rem',
+      textAlign: 'center' as const,
+    },
+    icon: {
+      fontSize: '4rem',
+      marginBottom: '1rem',
+    },
+    uploadTitle: {
+      fontSize: '1.25rem',
+      fontWeight: '600',
+      color: '#374151',
+      marginBottom: '0.5rem',
+    },
+    uploadDesc: {
+      color: '#6b7280',
+      marginBottom: '1.5rem',
+    },
+    uploadButton: {
+      display: 'inline-block',
+      background: '#059669',
+      color: 'white',
+      fontWeight: '500',
+      padding: '0.75rem 2rem',
+      borderRadius: '0.5rem',
+      cursor: 'pointer',
+      border: 'none',
+    },
+    imagePreview: {
+      position: 'relative' as const,
+      marginBottom: '1.5rem',
+    },
+    image: {
+      width: '100%',
+      height: '400px',
+      objectFit: 'cover' as const,
+      borderRadius: '0.5rem',
+    },
+    removeButton: {
+      position: 'absolute' as const,
+      top: '1rem',
+      right: '1rem',
+      background: '#ef4444',
+      color: 'white',
+      padding: '0.5rem 1rem',
+      borderRadius: '0.5rem',
+      border: 'none',
+      cursor: 'pointer',
+    },
+    identifyButton: {
+      width: '100%',
+      background: '#059669',
+      color: 'white',
+      fontWeight: '500',
+      padding: '0.75rem 1.5rem',
+      borderRadius: '0.5rem',
+      border: 'none',
+      fontSize: '1rem',
+      cursor: 'pointer',
+      marginBottom: '1.5rem',
+    },
+    identifyButtonDisabled: {
+      width: '100%',
+      background: '#9ca3af',
+      color: 'white',
+      fontWeight: '500',
+      padding: '0.75rem 1.5rem',
+      borderRadius: '0.5rem',
+      border: 'none',
+      fontSize: '1rem',
+      cursor: 'not-allowed',
+      marginBottom: '1.5rem',
+    },
+    resultBox: {
+      background: '#f0fdf4',
+      border: '1px solid #86efac',
+      borderRadius: '0.5rem',
+      padding: '1.5rem',
+    },
+    errorBox: {
+      background: '#fee2e2',
+      border: '1px solid #fca5a5',
+      borderRadius: '0.5rem',
+      padding: '1.5rem',
+      color: '#dc2626',
+    },
+    resultTitle: {
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      color: '#065f46',
+      marginBottom: '0.5rem',
+    },
+    scientificName: {
+      color: '#6b7280',
+      fontStyle: 'italic',
+      marginBottom: '1rem',
+    },
+    resultText: {
+      color: '#374151',
+      marginBottom: '0.5rem',
+    },
+  };
 
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            🌿 Identify Plant
-          </h1>
+  return (
+    <div style={styles.container}>
+      <div className="container" style={styles.maxWidth}>
+        <a href="/" style={styles.backLink}>
+          ← Back to Home
+        </a>
+
+        <div style={styles.card}>
+          <h1 style={styles.title}>🌿 Identify Plant</h1>
 
           {!selectedImage ? (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-              <div className="mb-4">
-                <span className="text-6xl">📸</span>
-              </div>
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                Upload a Plant Photo
-              </h2>
-              <p className="text-gray-500 mb-6">
+            <div style={styles.uploadBox}>
+              <div style={styles.icon}>📸</div>
+              <h2 style={styles.uploadTitle}>Upload a Plant Photo</h2>
+              <p style={styles.uploadDesc}>
                 Take a photo or choose from your gallery
               </p>
-              <label className="inline-block bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg cursor-pointer transition">
+              <label style={styles.uploadButton}>
                 Choose Photo
                 <input
                   type="file"
                   accept="image/*"
                   capture="environment"
                   onChange={handleImageSelect}
-                  className="hidden"
+                  style={{ display: 'none' }}
                 />
               </label>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="relative">
+            <>
+              <div style={styles.imagePreview}>
                 <img
                   src={selectedImage}
                   alt="Selected plant"
-                  className="w-full h-96 object-cover rounded-lg"
+                  style={styles.image}
                 />
                 <button
                   onClick={() => {
                     setSelectedImage(null);
                     setResult(null);
+                    setError(null);
                   }}
-                  className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                  style={styles.removeButton}
                 >
                   Remove
                 </button>
               </div>
 
-              {!result && (
+              {!result && !error && (
                 <button
                   onClick={handleIdentify}
                   disabled={identifying}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-3 px-6 rounded-lg transition"
+                  style={identifying ? styles.identifyButtonDisabled : styles.identifyButton}
                 >
                   {identifying ? 'Identifying...' : 'Identify Plant'}
                 </button>
               )}
 
-              {result && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                  {result.error ? (
-                    <p className="text-red-600">{result.error}</p>
-                  ) : (
-                    <div>
-                      <h3 className="text-2xl font-bold text-green-900 mb-2">
-                        {result.commonName}
-                      </h3>
-                      <p className="text-gray-600 italic mb-4">
-                        {result.scientificName}
-                      </p>
-                      <div className="space-y-2">
-                        <p className="text-gray-700">
-                          <strong>Confidence:</strong> {result.confidence}%
-                        </p>
-                        <p className="text-gray-700">{result.description}</p>
-                      </div>
-                      {result.plantId && (
-                        <a
-                          href={`/plants/${result.plantId}`}
-                          className="inline-block mt-4 text-green-700 hover:text-green-900 font-medium underline"
-                        >
-                          View Full Details →
-                        </a>
-                      )}
-                    </div>
-                  )}
+              {error && (
+                <div style={styles.errorBox}>
+                  <p><strong>Error:</strong> {error}</p>
+                  <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
+                    Make sure your OpenAI API key is configured in Vercel environment variables.
+                  </p>
                 </div>
               )}
-            </div>
+
+              {result && (
+                <div style={styles.resultBox}>
+                  <h3 style={styles.resultTitle}>{result.commonName}</h3>
+                  <p style={styles.scientificName}>{result.scientificName}</p>
+                  <div>
+                    <p style={styles.resultText}>
+                      <strong>Confidence:</strong> {result.confidence}%
+                    </p>
+                    <p style={styles.resultText}>{result.description}</p>
+                    {result.family && (
+                      <p style={styles.resultText}>
+                        <strong>Family:</strong> {result.family}
+                      </p>
+                    )}
+                    {result.nativeRegions && result.nativeRegions.length > 0 && (
+                      <p style={styles.resultText}>
+                        <strong>Native to:</strong> {result.nativeRegions.join(', ')}
+                      </p>
+                    )}
+                    {result.careInstructions && (
+                      <p style={styles.resultText}>
+                        <strong>Care:</strong> {result.careInstructions}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
