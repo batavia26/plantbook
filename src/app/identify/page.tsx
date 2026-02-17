@@ -8,16 +8,60 @@ export default function IdentifyPage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const resizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Resize to max 1024px on longest side
+          const maxSize = 1024;
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Convert to JPEG with 80% quality
+          const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(resizedDataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
+      try {
+        const resizedImage = await resizeImage(file);
+        setSelectedImage(resizedImage);
         setResult(null);
         setError(null);
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Failed to process image:', err);
+        setError('Failed to process image');
+      }
     }
   };
 
@@ -35,6 +79,11 @@ export default function IdentifyPage() {
         body: JSON.stringify({ image: selectedImage }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API returned ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
       
       if (data.error) {
@@ -44,7 +93,7 @@ export default function IdentifyPage() {
       }
     } catch (err) {
       console.error('Identification failed:', err);
-      setError('Failed to connect to identification service');
+      setError(err instanceof Error ? err.message : 'Failed to identify plant');
     } finally {
       setIdentifying(false);
     }
